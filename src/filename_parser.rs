@@ -169,7 +169,7 @@ impl FileNameParser<'_> {
                     self.name.next();
                 }
                 None => {
-                    if stop == '$' {
+                    if stop == '%' {
                         break Ok(());
                     }
                     break Err("could not parse hole");
@@ -187,7 +187,7 @@ fn stop_char(opt: Option<&&Node>) -> char {
             Node::Literal(a) => a.chars().next().unwrap(),
             _ => panic!("node cannot provide stop char"),
         },
-        None => '$',
+        None => '%',
     }
 }
 
@@ -224,11 +224,11 @@ mod tests {
     testify!(error3, "2003", "01.05.1990", true);
     testify!(error4, "20030201", "abc", true);
     testify!(error5, "20030201", "202102", true);
-    testify!(error6, "$0_2003", "2030", true);
-    testify!(error7, "$0_2003", "hello2030", true);
+    testify!(error6, "%0_2003", "2030", true);
+    testify!(error7, "%0_2003", "hello2030", true);
 
-    testify!(works1, "$0", "hello", false);
-    testify!(works2, "$0_$1", "hello_world", false);
+    testify!(works1, "%0", "hello", false);
+    testify!(works2, "%0_%1", "hello_world", false);
 
     #[test]
     fn test_month_mapping() -> Result<(), MyCustomError> {

@@ -35,7 +35,7 @@ type Result<T> = std::result::Result<(), T>;
 impl FormatParser<'_> {
     pub fn new(s: &str) -> FormatParser {
         let mut kw = HashSet::new();
-        kw.insert('$');
+        kw.insert('%');
         kw.insert('0');
         kw.insert('2');
         kw.insert('F');
@@ -44,7 +44,7 @@ impl FormatParser<'_> {
             input: s.chars().peekable(),
             nodes: Vec::new(),
             keywords: kw,
-            holes: s.matches('$').count(),
+            holes: s.matches('%').count(),
             sum: 0,
             count: 0,
         };
@@ -53,7 +53,7 @@ impl FormatParser<'_> {
     pub fn parse(&mut self) -> Result<MyCustomError> {
         let res: Result<MyCustomError> = loop {
             match self.input.peek() {
-                Some(x) if *x == '$' => self.parse_hole()?,
+                Some(x) if *x == '%' => self.parse_hole()?,
                 Some(x) if *x == '0' => self.parse_date()?,
                 Some(x) if *x == 'F' || *x == 'f' => self.parse_month()?,
                 Some(x) if *x == '2' => self.parse_year_long()?,
@@ -313,7 +313,7 @@ mod tests {
     }
     #[test]
     fn test_invalid_hole() {
-        let format_string = String::from("$2004");
+        let format_string = String::from("%2004");
         let mut p = FormatParser::new(&format_string);
         assert!(p.parse().is_err());
     }
