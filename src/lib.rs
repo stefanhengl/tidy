@@ -7,6 +7,7 @@ use error::MyCustomError;
 use log::debug;
 use std::fs;
 use std::io;
+use std::io::Write;
 use std::path::Path;
 use walkdir::WalkDir;
 
@@ -62,7 +63,7 @@ pub fn run(
                     print!(
                         "{}",
                         Red.paint(format!(
-                            "ERR: aborting processing. Error in file {}\n",
+                            "\nERR: aborting processing. Error in file {}\n\n\tHint:\n\n\tUse flag --ignore to ignore errors like this one.\n\n",
                             entry.path().to_str().unwrap()
                         ))
                     );
@@ -91,9 +92,9 @@ pub fn run(
             continue;
         }
         if opt.review == true {
-            print!("\x1B[2J\x1B[1;1H");
+            clear_screen();
             print!(
-                "{}\n{}\n\n",
+                "Do you want to rename this file?\n\n{}\n{}\n\n",
                 Red.paint(format!("-{}", &a)),
                 Green.paint(format!("+{}", &b.to_str().unwrap()))
             );
@@ -118,17 +119,27 @@ enum UserInput {
     Skip,
 }
 
+const ACCEPT: &str = "y";
+const ABORT: &str = "a";
+const SKIP: &str = "n";
+const ENTER: &str = "";
+
+fn clear_screen() {
+    print!("\x1B[2J\x1B[1;1H")
+}
+
 fn ask_user_input() -> UserInput {
-    print!("(a) accept, (x) abort, (S/s) skip\n");
+    print!("({}) yes, ({}) no, ({}) abort: ", ACCEPT, SKIP, ABORT);
+    io::stdout().flush().unwrap();
     let mut input = String::new();
     io::stdin()
         .read_line(&mut input)
         .expect("error: unable to read user input");
-    match &input[..] {
-        "x\n" => UserInput::Abort,
-        "a\n" => UserInput::Accept,
-        "s\n" => UserInput::Skip,
-        "\n" => UserInput::Skip,
+    match input.trim() {
+        ABORT => UserInput::Abort,
+        ACCEPT => UserInput::Accept,
+        SKIP => UserInput::Skip,
+        ENTER => UserInput::Skip,
         _ => UserInput::Abort,
     }
 }
